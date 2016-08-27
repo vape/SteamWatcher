@@ -12,6 +12,10 @@ namespace SteamWatcher
 
         private static Logger logger = LogManager.GetLogger("server");
 
+#if DEBUG
+        private static Random rand = new Random();
+#endif
+
         public static void Run(string address)
         {
             var uri = new Uri($"http://{address}/");
@@ -34,6 +38,12 @@ namespace SteamWatcher
                     {
                         Running = false;
                     }
+#if DEBUG
+                    else if (key.Key == ConsoleKey.E)
+                    {
+                        watcher.EmitTestChangelist((uint)rand.Next(730, 50000));
+                    }
+#endif
                 }
 
                 logger.Info("Stopping...");

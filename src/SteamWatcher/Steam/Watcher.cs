@@ -139,6 +139,14 @@ namespace SteamWatcher.Steam
 
         #endregion
 
+#if DEBUG
+        public void EmitTestChangelist(params uint[] appIds)
+        {
+            logger.Debug("Test changelist emit");
+            ChangelistResolver(new Changelist(812415, appIds, Enumerable.Empty<uint>()));
+        }
+#endif
+
         private void ChangelistResolver(Changelist changelist)
         {
             if (changelist.Apps.Count > 0 || changelist.Packages.Count > 0)
@@ -154,6 +162,27 @@ namespace SteamWatcher.Steam
             foreach (var app in changelist.Apps.Select(id => db.SelectAppInfo((int)id)).Where(a => a != null))
             {
                 logger.Info($"Known app changed: {app.Value.Name}");
+
+                var priceInfo = SteamHelper.GetAppPrice(app.Value.AppID);
+                if (priceInfo != null)
+                {
+                    if (db.PriceInfoExists(app.Value.AppID))
+                    {
+                        db.SelectPriceInfo(app.Value.AppID);
+                        db.UpdatePriceInfo(priceInfo.Value);
+                    }
+                    else
+                    {
+                        db.InsertPriceInfo(priceInfo.Value);
+                    }
+
+                    logger.Info($"Updated price info for \"{app.Value.Name}\"");
+                    logger.Info($"Current price: {priceInfo.Value.Price / 100}, Discount: {priceInfo.Value.Discount}%");
+                }
+                else
+                {
+                    logger.Warn($"Couldn't get price for \"{app.Value.Name}\" ({app.Value.AppID})");
+                }
             }
         }
     }
