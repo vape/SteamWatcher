@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,12 @@ namespace SteamWatcher
     {
         public MainModule()
         {
-            Get["/"] = param =>
+            Get["/api/changes/{since}"] = param =>
             {
-                return "Nothing to do here yet.";
+                int sinceTime = param.since;
+                var db = new Database();
+
+                return JsonConvert.SerializeObject(db.SelectPriceChanges(sinceTime));
             };
         }
     }

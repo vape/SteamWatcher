@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,9 @@ namespace SteamWatcher.Data
 {
     public struct AppInfo
     {
+        [JsonProperty("appid")]
         public readonly int AppID;
+        [JsonProperty("name")]
         public readonly string Name;
 
         public AppInfo(int appId, string name)
