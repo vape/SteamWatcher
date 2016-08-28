@@ -19,9 +19,11 @@ namespace SteamWatcher
             using (var connection = Connect(fileName))
             {
                 var query =
-                @"create table apps   (appid int, name varchar(1024));
-                  create table prices (appid int, price int, discount int, 
-                  last_update int);";
+                @"create table apps          (appid int, name varchar(1024));
+                  create table prices        (appid int, price int, discount int, 
+                                              last_update int);
+                  create table price_changes (appid int, p_prev int, p_new int, 
+                                              d_prev int, d_new int, updated_time int)";
 
                 var command = new SQLiteCommand(query, connection);
                 command.ExecuteNonQuery();
@@ -196,17 +198,26 @@ namespace SteamWatcher
 
         public void InsertPriceInfo(PriceInfo info)
         {
-            var query = $@"insert into prices(appid, price, discount, last_update)
-                           values({ info.AppID}, { info.Price}, { info.Discount}, 
-                                  { (int)DateTime.UtcNow.ToUnixTime()})";
+            var query = $@"insert into prices (appid, price, discount, last_update)
+                           values ({info.AppID}, {info.Price}, {info.Discount}, 
+                                   {(int)info.Updated.ToUnixTime()})";
             Execute(query);
         }
 
         public void UpdatePriceInfo(PriceInfo info)
         {
             var query = $@"update prices set price={info.Price},discount={info.Discount},
-                                             last_update={(int)DateTime.UtcNow.ToUnixTime()}
+                                             last_update={(int)info.Updated.ToUnixTime()}
                            where appid={info.AppID}";
+            Execute(query);
+        }
+
+        public void InsertPriceChange(PriceChange priceChange)
+        {
+            var query = $@"insert into price_changes (appid, p_prev, p_new, d_prev, d_new, updated_time)
+                           values ({priceChange.AppID}, {priceChange.Previous.Price}, 
+                                   {priceChange.New.Price}, {priceChange.Previous.Discount},
+                                   {priceChange.New.Discount}, {(int)priceChange.Updated.ToUnixTime()})";
             Execute(query);
         }
 

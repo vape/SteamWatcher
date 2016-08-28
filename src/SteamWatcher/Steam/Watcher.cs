@@ -1,5 +1,6 @@
 ﻿using NLog;
 using SteamKit2;
+using SteamWatcher.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -143,7 +144,7 @@ namespace SteamWatcher.Steam
         public void EmitTestChangelist(params uint[] appIds)
         {
             logger.Debug("Test changelist emit");
-            ChangelistResolver(new Changelist(812415, appIds, Enumerable.Empty<uint>()));
+            ChangelistResolver(new Changelist(999999, appIds, Enumerable.Empty<uint>()));
         }
 #endif
 
@@ -151,37 +152,41 @@ namespace SteamWatcher.Steam
         {
             if (changelist.Apps.Count > 0 || changelist.Packages.Count > 0)
             {
-                logger.Info($"{changelist.Apps.Count} apps changed / {changelist.Packages.Count} packages changed");
+                logger.Info($"{changelist.Apps.Count} apps changed; {changelist.Packages.Count} packages changed");
             }
             else
             {
-                logger.Info("No apps/packages changed");
+                logger.Info("No apps or packages changed");
             }
 
             var db = new Database();
             foreach (var app in changelist.Apps.Select(id => db.SelectAppInfo((int)id)).Where(a => a != null))
             {
-                logger.Info($"Known app changed: {app.Value.Name}");
+                logger.Info($"Known app changed: {{{app}}}");
 
                 var priceInfo = SteamHelper.GetAppPrice(app.Value.AppID);
                 if (priceInfo != null)
                 {
+                    var prevPriceInfo = db.SelectPriceInfo(app.Value.AppID) ?? new PriceInfo();
+
                     if (db.PriceInfoExists(app.Value.AppID))
-                    {
-                        db.SelectPriceInfo(app.Value.AppID);
-                        db.UpdatePriceInfo(priceInfo.Value);
-                    }
+                    { db.UpdatePriceInfo(priceInfo.Value); }
                     else
+                    { db.InsertPriceInfo(priceInfo.Value); }
+
+                    if (prevPriceInfo.Price != priceInfo?.Price || prevPriceInfo.Discount != priceInfo?.Discount)
                     {
-                        db.InsertPriceInfo(priceInfo.Value);
+                        var priceChange = new PriceChange(app.Value.AppID, prevPriceInfo, priceInfo.Value);
+                        db.InsertPriceChange(priceChange);
+
+                        logger.Info($"Added price change: {priceChange}");
                     }
 
-                    logger.Info($"Updated price info for \"{app.Value.Name}\"");
-                    logger.Info($"Current price: {priceInfo.Value.Price / 100}, Discount: {priceInfo.Value.Discount}%");
+                    logger.Info($"Updated price info for {{{app}}}: {{{priceInfo}}}");
                 }
                 else
                 {
-                    logger.Warn($"Couldn't get price for \"{app.Value.Name}\" ({app.Value.AppID})");
+                    logger.Warn($"Couldn't get price for {{{app}}}");
                 }
             }
         }
