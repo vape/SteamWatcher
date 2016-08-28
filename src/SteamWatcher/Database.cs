@@ -221,6 +221,28 @@ namespace SteamWatcher
             Execute(query);
         }
 
+        public PriceChange[] SelectPriceChanges(int sinceTime)
+        {
+            var query = $"select * from price_changes where updated_time>{sinceTime}";
+            var selected = ExecuteSelect(query);
+
+            var priceChanges = new PriceChange[selected.Rows.Count];
+            for (int i = 0; i < priceChanges.Length; ++i)
+            {
+                var appId = (int)selected.Rows[i]["appid"];
+                var prevPrice = (int)selected.Rows[i]["p_prev"];
+                var newPrice = (int)selected.Rows[i]["p_new"];
+                var prevDisc = (int)selected.Rows[i]["d_prev"];
+                var newDisc = (int)selected.Rows[i]["d_new"];
+                var updated = ((int)selected.Rows[i]["updated_time"]).FromUnixTime();
+
+                priceChanges[i] = new PriceChange(appId, new PriceInfo(appId, prevPrice, prevDisc),
+                                                         new PriceInfo(appId, newPrice, newDisc));
+            }
+
+            return priceChanges;
+        }
+
         public void Dispose()
         {
             connection.Dispose();

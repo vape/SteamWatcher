@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,14 @@ namespace SteamWatcher.Utilities
         public static double ToUnixTime(this DateTime time)
         {
             return Math.Round((time - Epoch).TotalSeconds, 2);
+        }
+
+        public static IEnumerable<DataRow> Enumerate(this DataRowCollection rowCollection)
+        {
+            for (int i = 0; i < rowCollection.Count; ++i)
+            {
+                yield return rowCollection[i];
+            }
         }
     }
 }
