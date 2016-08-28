@@ -35,7 +35,7 @@ namespace SteamWatcher.Data
 
         public override string ToString()
         {
-            return $"Price: {Price}; Discount: {Discount}";
+            return $"Price: {NormalPrice}; Discount: {Discount}%";
         }
     }
 }
