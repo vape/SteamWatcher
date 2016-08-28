@@ -61,6 +61,11 @@ namespace SteamWatcher
                     ApplicationDirectory = DefaultAppDirectory;
                 }
 
+                if (!Directory.Exists(ApplicationDirectory))
+                {
+                    Directory.CreateDirectory(ApplicationDirectory);
+                }
+
                 if (DatabaseFile == null)
                 {
                     DatabaseFile = Path.Combine(ApplicationDirectory, "database.db");
@@ -87,7 +92,7 @@ namespace SteamWatcher
                 if (options.FetchApps)
                 {
                     var appsList = SteamHelper.FetchAppsList();
-                    var db = new Database(options.DatabaseFile);
+                    var db = new Database(options.DatabaseFile) ;
 
                     db.DeleteAppsInfo();
                     db.InsertAppsInfo(appsList.ToArray());
