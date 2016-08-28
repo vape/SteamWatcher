@@ -16,5 +16,10 @@ namespace SteamWatcher.Data
             AppID = appId;
             Name = name ?? "Unknown Application";
         }
+
+        public override string ToString()
+        {
+            return $"AppID: {AppID}; Name: {Name}";
+        }
     }
 }
