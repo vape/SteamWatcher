@@ -97,6 +97,7 @@
   <ItemGroup>
     <Compile Include="Database.cs" />
     <Compile Include="Data\AppInfo.cs" />
+    <Compile Include="Data\PriceChange.cs" />
     <Compile Include="Data\PriceInfo.cs" />
     <Compile Include="MainModule.cs" />
     <Compile Include="Program.cs" />
